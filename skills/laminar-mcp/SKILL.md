@@ -49,7 +49,9 @@ If not installed: question the minimal fix, explore broader alternatives, consid
 
 ## Read existing demand
 
-`get_work_item` → `get_work_item_anchored_context` → `list_source_contexts` → `load_source_context` (relevant ids) → `get_story_map`
+If you already have the ID: `get_work_item` → `get_work_item_anchored_context` → `list_source_contexts` → `load_source_context` (relevant ids) → `get_story_map`
+
+If you don't have the ID: `list_work_items` first to find the `customId`, then follow the flow above. **Never pass free-text to `get_work_item`** — it only accepts a `customId` (e.g. `TAL-131`) or internal `workItemId`.
 
 Synthesize intent from work item + anchored context; ground details in loaded source contexts.
 
