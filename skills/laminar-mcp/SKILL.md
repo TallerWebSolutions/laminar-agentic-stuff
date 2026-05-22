@@ -55,6 +55,24 @@ If you don't have the ID: `list_work_items` first to find the `customId`, then f
 
 Synthesize intent from work item + anchored context; ground details in loaded source contexts.
 
+**Starting work on a demand** — after reading it, always ask:
+1. *"Should I assign you to this demand?"* → `list_team_members` to find the user's `teamMemberId` → `assign_work_item` (`confirmed: false` preview first)
+2. *"Should I move it to the active doing status?"* → `get_valid_transitions` → `transition_work_item` to the appropriate `touch`-type status
+
+## Close demand (after ship / production push)
+
+Follow in order.
+
+**1. Sync anchored context**
+`get_work_item_anchored_context` → if everything was actually done, mark every `stateItem` done, every scenario `covered`, clear `openQuestions` → `put_work_item_anchored_context` with `expectedVersion`.
+On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
+
+**2. Sync demand description** *(if AC changed during implementation)*
+`get_work_item` (`descriptionFormat: "json"`) → merge new scenarios into the TipTap JSON → `update_work_item`. The demand description is what QA reads; the anchored context is what the next dev reads — both must reflect the full shipped scope.
+
+**3. Walk to final Done** *(ask the user first, if should move to final done)*
+`get_valid_transitions` → `transition_work_item` → repeat until a status with `type: final` named "Done" is reachable. Workflows often gate the final status with intermediate queue/touch steps — advance one hop at a time.
+
 ## Demand conventions
 
 **Language**: Match the conversation's language by default. At `confirmed: false` preview, ask: *"Translate to [language] before creating?"*
@@ -82,5 +100,10 @@ Synthesize intent from work item + anchored context; ground details in loaded so
 | Batch previews assumed complete | ACL + row validation happen on `confirmed: true`; inspect `failures` after execute |
 | `pendingOperationId` reused across calls | It's informational — re-call the **same tool with same args** to execute, not the pending id |
 | Raw source context dumps by default | Signals first; `includeRawText: true` only if signals are missing or insufficient |
-| Chat-only "done" on handoff | `put_work_item_anchored_context` + `expectedVersion` — chat summary alone is not persisted |
+| Handoff not persisted | `put_work_item_anchored_context` + `expectedVersion` — chat summary alone is not persisted |
+| Status left open after ship | Walk `get_valid_transitions` → `transition_work_item` to final Done — don't stop at the first "Done" queue step |
+| Final "Done" not in `get_valid_transitions` | Workflow gates it behind intermediate steps — advance one hop at a time until `type: final` is reachable |
+| New scenarios only in anchored context | `update_work_item` (descriptionFormat: json) too — the demand description is what QA reads |
+| Demand not assigned when work starts | `list_team_members` → `assign_work_item` — always ask at the start of a work session |
+| `ANCHORED_CONTEXT_VERSION_CONFLICT` on put | Refetch with `get_work_item_anchored_context`, merge locally, retry with the new `expectedVersion` |
 | Wrong reorder API | `reorder_story_map_step` / `_activity` take `targetPosition` (integer); `direction` is only for `reorder_story_map_release` |
