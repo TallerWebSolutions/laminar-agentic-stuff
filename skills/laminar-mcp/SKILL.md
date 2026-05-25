@@ -35,7 +35,7 @@ Invoke `/grill-me` to stress-test scope before drafting.
 If not installed: question the minimal fix, explore broader alternatives, consider story map journey fit.
 *(Recommend installing: `.agents/skills/grill-me/`)*
 
-**5. Draft** — apply conventions below
+**5. Draft** — apply title + body templates (see [Demand conventions](#demand-conventions))
 
 **6. Create** → `confirmed: false` → echo summary → approved → `confirmed: true`
 
@@ -77,14 +77,7 @@ On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
 
 **Language**: Match the conversation's language by default. At `confirmed: false` preview, ask: *"Translate to [language] before creating?"*
 
-**Title**:
-- Features: actor + action ("Admin creates team to set up board")
-- Bugs: what the user can't do or the observable broken behavior ("Demand creation fails with 'No statuses found' in new orgs")
-- Never prefix with type (`Bug:`, `Feat:`) — type is a structured field
-
-**Acceptance criteria**: Gherkin recommended — Feature / As a / I want / So that + Background / Scenario / Given / When / Then
-
-**Bug description structure**: Problem → Root cause (if known) → Steps to reproduce → Acceptance criteria (Gherkin)
+**Title + body**: Apply templates in [references/demand-templates.md](references/demand-templates.md) — title slot pattern (Quem/Onde/Quando/O que/Para que), body sections in order (Problema required, Apoio optional, Critérios de aceite required), Gherkin AC required.
 
 ## Pitfalls
 
@@ -107,3 +100,4 @@ On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
 | Demand not assigned when work starts | `list_team_members` → `assign_work_item` — always ask at the start of a work session |
 | `ANCHORED_CONTEXT_VERSION_CONFLICT` on put | Refetch with `get_work_item_anchored_context`, merge locally, retry with the new `expectedVersion` |
 | Wrong reorder API | `reorder_story_map_step` / `_activity` take `targetPosition` (integer); `direction` is only for `reorder_story_map_release` |
+| Title missing Quem/Onde/Quando/O que slot | Refer to [references/demand-templates.md](references/demand-templates.md) — all slots except "Para que" are mandatory |
