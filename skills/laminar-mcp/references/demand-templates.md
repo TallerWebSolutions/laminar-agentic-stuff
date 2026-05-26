@@ -54,7 +54,27 @@ Skip section entirely if user provided none — don't fabricate placeholders.
 
 ### Critérios de aceite
 
-**Required.** Gherkin only. No free-text AC, no checklist AC.
+**Required.** Gherkin only. No free-text AC, no checklist AC. **Keywords must match the demand's language** — if the demand body is pt-BR, write Gherkin in pt-BR; if English, write Gherkin in English. Never mix.
+
+**pt-BR template** (use when demand is written in pt-BR):
+
+```
+Funcionalidade: <nome da funcionalidade>
+  Como <persona>
+  Quero <capacidade>
+  Para que <resultado>
+
+  Contexto:
+    Dado <pré-condição compartilhada>
+
+  Cenário: <comportamento observável>
+    Dado <estado>
+    Quando <evento>
+    Então <resultado>
+    E <resultado adicional>
+```
+
+**English template** (use when demand is written in English):
 
 ```
 Feature: <feature name>
@@ -72,9 +92,10 @@ Feature: <feature name>
     And <additional outcome>
 ```
 
+Keyword map EN ↔ PT: `Feature`/`Funcionalidade`, `Background`/`Contexto`, `Scenario`/`Cenário`, `Scenario Outline`/`Esquema do Cenário`, `Examples`/`Exemplos`, `Given`/`Dado`, `When`/`Quando`, `Then`/`Então`, `And`/`E`, `But`/`Mas`.
+
 Rules:
-- One `Feature` per work item.
-- One `Scenario` per observable behavior; split when Then-chain mixes unrelated outcomes.
-- `Background` only when ≥2 scenarios share preconditions.
-- Same language as conversation; ask at preview if translation needed.
-- Bug AC uses same template; Scenario describes broken behavior reproducibly. Root cause goes in Problema if known.
+- One `Funcionalidade`/`Feature` per work item.
+- One `Cenário`/`Scenario` per observable behavior; split when Então/Then-chain mixes unrelated outcomes.
+- `Contexto`/`Background` only when ≥2 scenarios share preconditions.
+- Bug AC uses same template; `Cenário`/`Scenario` describes broken behavior reproducibly. Root cause goes in Problema if known.

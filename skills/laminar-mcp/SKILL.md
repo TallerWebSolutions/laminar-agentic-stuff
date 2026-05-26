@@ -77,7 +77,7 @@ On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
 
 **Language**: Match the conversation's language by default. At `confirmed: false` preview, ask: *"Translate to [language] before creating?"*
 
-**Title + body**: Apply templates in [references/demand-templates.md](references/demand-templates.md) — title slot pattern (Quem/Onde/Quando/O que/Para que), body sections in order (Problema required, Apoio optional, Critérios de aceite required), Gherkin AC required.
+**Title + body**: Apply templates in [references/demand-templates.md](references/demand-templates.md) — title slot pattern (Quem/Onde/Quando/O que/Para que), body sections in order (Problema required, Apoio optional, Critérios de aceite required), Gherkin AC required with keywords matching the demand's language (pt-BR demand → `Funcionalidade`/`Cenário`/`Dado`/`Quando`/`Então`; English demand → `Feature`/`Scenario`/`Given`/`When`/`Then`).
 
 ## Pitfalls
 
@@ -101,3 +101,4 @@ On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
 | `ANCHORED_CONTEXT_VERSION_CONFLICT` on put | Refetch with `get_work_item_anchored_context`, merge locally, retry with the new `expectedVersion` |
 | Wrong reorder API | `reorder_story_map_step` / `_activity` take `targetPosition` (integer); `direction` is only for `reorder_story_map_release` |
 | Title missing Quem/Onde/Quando/O que slot | Refer to [references/demand-templates.md](references/demand-templates.md) — all slots except "Para que" are mandatory |
+| Gherkin keyword language mismatches demand body (e.g. pt-BR demand with `Given`/`When`/`Then`) | Match demand language — pt-BR demand uses `Funcionalidade`/`Contexto`/`Cenário`/`Dado`/`Quando`/`Então`/`E`/`Mas`; English demand keeps `Feature`/`Background`/`Scenario`/`Given`/`When`/`Then`/`And`/`But` |
