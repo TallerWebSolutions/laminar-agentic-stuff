@@ -73,6 +73,33 @@ On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
 **3. Walk to final Done** *(ask the user first, if should move to final done)*
 `get_valid_transitions` → `transition_work_item` → repeat until a status with `type: final` named "Done" is reachable. Workflows often gate the final status with intermediate queue/touch steps — advance one hop at a time.
 
+## Hours pressure report
+
+Use when asked to compute per-client hours pressure for a month — same calc as the Status Report "Horas" tab.
+
+**Consumed hours** (mirrors UI Status Report "Horas"): `consumed = attribution.hours * (1 + overhead/100) + activity.hours + manual.hours`. Default `overhead = 20`.
+
+**Pressure per client** as decimal ratio, weighted by share of team capacity:
+
+```
+pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved / totalCapacityHours)
+```
+
+`totalCapacityHours` is the team's total available hours for the month (required param). `percentMonthElapsed = elapsedBusinessDays / totalBusinessDays` (Excel NETWORKDAYS semantics: Mon–Fri UTC minus any `holidays`). Positive = slack, negative = deficit. Example: reserved=100, consumed=35, percentMonth=1, totalCapacity=500 → `(1 - 0.35) * 0.2 = 0.13` (13% slack against the whole team). `totals.pressure` is the sum across clients, also expressed as ratio of team capacity.
+
+**Flow**
+1. `list_clients` → resolve client IDs.
+2. (Per-product filter) `list_products` (set client context first) → identify product IDs (e.g. "Sites taller" for Taller).
+3. Ask the user for each client's `reservedHours` for the target month, the team's `totalCapacityHours`, and any `holidays` (optional ISO `YYYY-MM-DD` array).
+4. Call `get_clients_pressure` with `period: "YYYY-MM"`, `totalCapacityHours`, `holidays?`, and `inputs: [{clientId, clientName?, productIds?, reservedHours}, ...]`.
+5. For a single-client consumed-only number: `get_consumed_hours` (skip step 3).
+
+**Notes**
+- Both tools enforce client view ACL via PAT user.
+- `percentMonthElapsed` counts only business days (Mon-Fri UTC) minus `holidays`. For a fully past period it is `1`.
+- Override overhead per call with `overheadPercentual`.
+- Response also returns `totalBusinessDays` and `elapsedBusinessDays` for transparency.
+
 ## Demand conventions
 
 **Language**: Match the conversation's language by default. At `confirmed: false` preview, ask: *"Translate to [language] before creating?"*
