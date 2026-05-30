@@ -1,13 +1,13 @@
 ---
 name: laminar-mcp
-description: Guides Laminar MCP sessions for demand creation, story map operations, source context loading, and handoff ADRs. Use when working on Laminar demands via the remote Laminar MCP and you see wrong or empty client/product scope, plans from source-context lists without per-id loads, needless raw transcripts, same-step or same-release story-map peers, anchored ADR conflicts, MCP transitions/assignments, broken or silent MCP, or mentions of Laminar MCP, demands, work item custom IDs, story map, anchored or source context, or Laminar handoff.
+description: Guides Laminar MCP sessions for demand creation, story map operations, knowledge graph research, and handoff ADRs. Use when working on Laminar demands via the remote Laminar MCP and you see wrong or empty client/product scope, plans without prior research, missed contradictions or gaps, same-step or same-release story-map peers, anchored ADR conflicts, MCP transitions/assignments, broken or silent MCP, or mentions of Laminar MCP, demands, work item custom IDs, story map, anchored or source context, or Laminar handoff.
 ---
 
 # Laminar MCP
 
 ## Overview
 
-Server `tools/list` wins on names and args over this file. Assume **only** MCP access — not a checkout, workspace, or app shell. Prefer **signals** from `load_source_context`; stop loading when the next step is clear.
+Server `tools/list` wins on names and args over this file. Assume **only** MCP access — not a checkout, workspace, or app shell. Prefer `research_product_context` for context; stop researching when `sufficiency: "enough"` or the next step is clear.
 
 ## Quick start
 
@@ -20,40 +20,41 @@ Lists need **client**; story map and releases need **product**. `clear_context` 
 
 Follow in order — do not skip.
 
-**1. Source context gate** *(mandatory — no planning or codebase work until done)*
-`list_source_contexts` → identify relevant IDs → `load_source_context` on each
+**1. Research gate** *(mandatory — no drafting until research is sufficient)*
+`research_product_context` (mode: `standard`) — then read the result:
+- If `shouldAskHuman: true`: immediately surface `contextBundle.contradictions` and `contextBundle.gaps` as explicit questions to the user — stop and wait for direction before anything else
+- If `sufficiency: "partial"` or `"insufficient"`: follow up to 2 of the returned `nextQueries`, passing the previous call's `answer` as `alreadyKnownContext` each time; stop as soon as `"enough"` is reached or both follow-ups are exhausted
+- Duplicate check: read `contextBundle.canonical.workItems` in the result — only call `list_work_items` if research returned zero work items and the query was broad enough that a duplicate might exist under a different framing
 
-**2. Duplicate check**
-`list_work_items` (open) → if an existing item covers the same problem, update it instead of creating
+**Mode guidance**
+- `quick` — single specific fact check (e.g. "does a decision on X exist?") before a narrow follow-up
+- `standard` — default for all demand research and context acquisition
+- `deep` — cross-cutting architecture or design questions requiring full solution model understanding
 
-**3. Story map context**
-`get_story_map` → `list_story_map_activities` + `list_story_map_steps` + `list_story_map_work_items`
-Use peer items and existing steps as input to the brainstorm (step 4), not just for placement
-
-**4. Solution brainstorm**
+**2. Solution brainstorm**
 Invoke `/grill-me` to stress-test scope before drafting.
 If not installed: question the minimal fix, explore broader alternatives, consider story map journey fit.
 *(Recommend installing: `.agents/skills/grill-me/`)*
 
-**5. Draft** — apply title + body templates (see [Demand conventions](#demand-conventions))
+**3. Draft** — apply title + body templates (see [Demand conventions](#demand-conventions))
 
-**6. Create** → `confirmed: false` → echo summary → approved → `confirmed: true`
+**4. Create** → `confirmed: false` → echo summary → approved → `confirmed: true`
 
-**7. Story map placement** *(always ask, even if not mentioned by user)*
-"Should I place this on a story map step?" → `move_work_item_to_step` if yes
+**5. Story map placement** *(always ask, even if not mentioned by user)*
+"Should I place this on a story map step?" → `get_story_map` → `move_work_item_to_step` if yes
 
-**8. Release assignment** *(always ask, even if not mentioned by user)*
+**6. Release assignment** *(always ask, even if not mentioned by user)*
 "Should I assign this to a release?" → `assign_work_items_to_release_batch` if yes
 
 → Write contracts & batch ops: [references/making-changes.md](references/making-changes.md)
 
 ## Read existing demand
 
-If you already have the ID: `get_work_item` → `get_work_item_anchored_context` → `list_source_contexts` → `load_source_context` (relevant ids) → `get_story_map`
+If you already have the ID: `get_work_item` → `get_work_item_anchored_context` → `research_product_context` (mode: `standard`, `focus: { workItemQuery: customId }`)
 
 If you don't have the ID: `list_work_items` first to find the `customId`, then follow the flow above. **Never pass free-text to `get_work_item`** — it only accepts a `customId` (e.g. `TAL-131`) or internal `workItemId`.
 
-Synthesize intent from work item + anchored context; ground details in loaded source contexts.
+Synthesize from: work item fields + anchored context decisions + research `answer` and `contextBundle`.
 
 **Starting work on a demand** — after reading it, always ask:
 1. *"Should I assign you to this demand?"* → `list_team_members` to find the user's `teamMemberId` → `assign_work_item` (`confirmed: false` preview first)
@@ -110,8 +111,11 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 
 | Symptom | Fix |
 |---------|-----|
-| Jumped to planning before source contexts | Hard gate: `list_source_contexts` + `load_source_context` FIRST |
-| No duplicate check | `list_work_items` before every create |
+| Jumped to drafting before research | Hard gate: `research_product_context` FIRST — no drafting until `sufficiency: "enough"` or 2 follow-ups exhausted |
+| `shouldAskHuman: true` ignored | Stop immediately — surface contradictions + gaps as explicit questions before any follow-up research or drafting |
+| Follow-up research without `alreadyKnownContext` | Always pass the previous call's `answer` as `alreadyKnownContext` — prevents the researcher from repeating overlapping context |
+| More than 2 follow-up research calls | Cap at 2; after that, surface remaining `gaps` to the user and proceed with what's available |
+| Used `list_work_items` as the default duplicate check | Research returns `canonical.workItems` — only call `list_work_items` if research returned zero and the query was broad |
 | Story map / release skipped after creation | Both are mandatory post-create checkpoints — always ask |
 | Minimal fix without exploring scope | `/grill-me` or inline brainstorm before drafting |
 | Write executed without approval | `confirmed: false` → echo summary → `confirmed: true` only after user accepts |
@@ -119,7 +123,6 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | `get_valid_transitions` with only a customId | Load `workItemId` via `get_work_item` first |
 | Batch previews assumed complete | ACL + row validation happen on `confirmed: true`; inspect `failures` after execute |
 | `pendingOperationId` reused across calls | It's informational — re-call the **same tool with same args** to execute, not the pending id |
-| Raw source context dumps by default | Signals first; `includeRawText: true` only if signals are missing or insufficient |
 | Handoff not persisted | `put_work_item_anchored_context` + `expectedVersion` — chat summary alone is not persisted |
 | Status left open after ship | Walk `get_valid_transitions` → `transition_work_item` to final Done — don't stop at the first "Done" queue step |
 | Final "Done" not in `get_valid_transitions` | Workflow gates it behind intermediate steps — advance one hop at a time until `type: final` is reachable |

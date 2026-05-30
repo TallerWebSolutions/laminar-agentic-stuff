@@ -6,8 +6,8 @@
 
 | Area | Tools |
 |------|--------|
+| **Research** | `research_product_context` (`query`, `scope`?: `{ clientName?, productName? }`, `focus`?: `{ workItemQuery? }`, `intentHint`?, `mode`?: `quick` \| `standard` \| `deep`, `alreadyKnownContext`?) — primary context tool; returns `answer`, `contextBundle` (with `canonical.workItems`, `gaps`, `contradictions`), `sufficiency`, `nextQueries`, `shouldAskHuman` |
 | **Session** | `get_current_context`, `set_context` (`clientId`?, `productId`?), `clear_context` |
-| **Source context** | `list_source_contexts` (`limit`?), `load_source_context` (`sourceContextIds`, `includeRawText`?) |
 | **Portfolio / org lists** | `list_clients`, `list_products` (`clientId`? or session client), `list_statuses`, `list_team_members`, `list_blocker_types`, `list_releases` (session `productId` or `productId` arg) |
 | **Work items (read)** | `list_work_items` (`completionFilter`?: `open` default \| `all`), `get_work_item` (`query`, `descriptionFormat`?: `plain` to read \| `json`/`both` only if editing description), `get_valid_transitions` (`workItemId`) |
 | **Story map (read)** | `get_story_map` (`productId`?), `list_story_map_activities` (`storyMapId`), `list_story_map_steps` (`storyMapId`), `list_story_map_releases` (`storyMapId`), `list_story_map_work_items` (`productId`?) |
