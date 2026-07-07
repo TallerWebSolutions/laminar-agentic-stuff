@@ -41,7 +41,7 @@ If not installed: question the minimal fix, explore broader alternatives, consid
 **4. Create** → `confirmed: false` → echo summary → approved → `confirmed: true`
 
 **5. Story map placement** *(always ask, even if not mentioned by user)*
-"Should I place this on a story map step?" → `get_story_map` → `move_work_item_to_step` if yes
+"Should I place this on a story map step?" → `get_story_map` → `list_story_map_steps` (each step carries `actor` inherited from its activity) → `move_work_item_to_step` if yes. Label each option as **`Actor: Activity > Step`** when the step has an actor, or **`Activity > Step`** when it doesn't — the actor is the primary discriminator (e.g. "Team member: Setup workflow > Setup transitions" vs "Cliente: Access the board > Filter by product").
 
 **6. Release assignment** *(always ask, even if not mentioned by user)*
 "Should I assign this to a release?" → `assign_work_items_to_release_batch` if yes
@@ -130,5 +130,6 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | Demand not assigned when work starts | `list_team_members` → `assign_work_item` — always ask at the start of a work session |
 | `ANCHORED_CONTEXT_VERSION_CONFLICT` on put | Refetch with `get_work_item_anchored_context`, merge locally, retry with the new `expectedVersion` |
 | Wrong reorder API | `reorder_story_map_step` / `_activity` take `targetPosition` (integer); `direction` is only for `reorder_story_map_release` |
+| Story map placement options label without the actor | When a step's activity has an actor, label as `Actor: Activity > Step`; fall back to `Activity > Step` only when actor is null |
 | Title missing Quem/Onde/Quando/O que slot | Refer to [references/demand-templates.md](references/demand-templates.md) — all slots except "Para que" are mandatory |
 | Gherkin keyword language mismatches demand body (e.g. pt-BR demand with `Given`/`When`/`Then`) | Match demand language — pt-BR demand uses `Funcionalidade`/`Contexto`/`Cenário`/`Dado`/`Quando`/`Então`/`E`/`Mas`; English demand keeps `Feature`/`Background`/`Scenario`/`Given`/`When`/`Then`/`And`/`But` |
