@@ -107,6 +107,14 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 
 **Title + body**: Apply templates in [references/demand-templates.md](references/demand-templates.md) — title slot pattern (Quem/Onde/Quando/O que/Para que), body sections in order (Problema required, Apoio optional, Critérios de aceite required), Gherkin AC required with keywords matching the demand's language (pt-BR demand → `Funcionalidade`/`Cenário`/`Dado`/`Quando`/`Então`; English demand → `Feature`/`Scenario`/`Given`/`When`/`Then`).
 
+## Release conventions
+
+**"Current" / "active" release** = the first item in `list_story_map_releases` (ordered by `position`) whose `isArchived` is not true. Convention holds regardless of the release name — position is the source of truth. When the user says "release atual", "release ativa", "current release", or "active release", resolve to this item without asking.
+
+- MCP list endpoints (`list_releases`, `list_story_map_releases`, `get_story_map`) still return archived releases today — filter client-side on `isArchived !== true` until TAL-154 lands.
+- When no active release exists (all archived, or none positioned), tell the user explicitly — never fall back silently to an archived one.
+- For historical or precedence context on archived releases, use `research_product_context` (grafo + fontes) rather than the story map tools.
+
 ## Pitfalls
 
 | Symptom | Fix |
@@ -133,3 +141,4 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | Story map placement options label without the actor | When a step's activity has an actor, label as `Actor: Activity > Step`; fall back to `Activity > Step` only when actor is null |
 | Title missing Quem/Onde/Quando/O que slot | Refer to [references/demand-templates.md](references/demand-templates.md) — all slots except "Para que" are mandatory |
 | Gherkin keyword language mismatches demand body (e.g. pt-BR demand with `Given`/`When`/`Then`) | Match demand language — pt-BR demand uses `Funcionalidade`/`Contexto`/`Cenário`/`Dado`/`Quando`/`Então`/`E`/`Mas`; English demand keeps `Feature`/`Background`/`Scenario`/`Given`/`When`/`Then`/`And`/`But` |
+| Guessed which release the user means by "current" / "active" | Resolve to the first `list_story_map_releases` item with `isArchived !== true`; if none, tell the user there is no active release rather than picking an archived one |
