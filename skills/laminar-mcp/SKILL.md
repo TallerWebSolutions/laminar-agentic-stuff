@@ -109,10 +109,10 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 
 ## Release conventions
 
-**"Current" / "active" release** = the first item in `list_story_map_releases` (ordered by `position`) whose `isArchived` is not true. Convention holds regardless of the release name — position is the source of truth. When the user says "release atual", "release ativa", "current release", or "active release", resolve to this item without asking.
+**"Current" / "active" release** = the first item returned by `list_story_map_releases` (ordered by `position`). Convention holds regardless of the release name — position is the source of truth. When the user says "release atual", "release ativa", "current release", or "active release", resolve to this item without asking.
 
-- MCP list endpoints (`list_releases`, `list_story_map_releases`, `get_story_map`) still return archived releases today — filter client-side on `isArchived !== true` until TAL-154 lands.
-- When no active release exists (all archived, or none positioned), tell the user explicitly — never fall back silently to an archived one.
+- `list_releases` and `list_story_map_releases` return only active (non-archived) releases; the first `list_story_map_releases` item is the active one.
+- When the list is empty, tell the user there is no active release — never fall back silently to an archived one.
 - For historical or precedence context on archived releases, use `research_product_context` (grafo + fontes) rather than the story map tools.
 
 ## Pitfalls
