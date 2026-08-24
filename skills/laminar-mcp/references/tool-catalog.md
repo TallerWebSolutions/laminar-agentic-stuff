@@ -6,7 +6,8 @@
 
 | Area | Tools |
 |------|--------|
-| **Research** | `research_product_context` (`query`, `scope`?: `{ clientName?, productName? }`, `focus`?: `{ workItemQuery? }`, `intentHint`?, `mode`?: `quick` \| `standard` \| `deep`, `alreadyKnownContext`?) — primary context tool; returns `answer`, `contextBundle` (with `canonical.workItems`, `gaps`, `contradictions`), `sufficiency`, `nextQueries`, `shouldAskHuman` |
+| **Research** | `research_product_context` (`query`, `scope`?: `{ clientName?, productName? }`, `focus`?: `{ workItemQuery?, sourceContextId?, latestMeetings?: 1-5, category? }`, `intentHint`?, `mode`?: `quick` \| `standard` \| `deep`, `alreadyKnownContext`?) — primary context tool; returns `answer`, `contextBundle` (with `canonical.workItems`, `discovery.sourceContexts`, `gaps`, `contradictions`), `sufficiency`, `nextQueries`, `shouldAskHuman` |
+| **Source contexts** | `list_source_contexts` (`limit`? default 50, max 200) — published meetings/transcripts for the session client, newest first, no bodies; `load_source_context` (`sourceContextIds`: 1-10, `includeRawText`? default false — max **2** ids when true) |
 | **Session** | `get_current_context`, `set_context` (`clientId`?, `productId`?), `clear_context` |
 | **Portfolio / org lists** | `list_clients`, `list_products` (`clientId`? or session client), `list_statuses`, `list_team_members`, `list_blocker_types`, `list_releases` (session `productId` or `productId` arg) |
 | **Work items (read)** | `list_work_items` (`completionFilter`?: `open` default \| `all`), `get_work_item` (`query`, `descriptionFormat`?: `plain` to read \| `json`/`both` only if editing description), `get_valid_transitions` (`workItemId`) |
@@ -17,6 +18,14 @@
 | **Anchored ADR** | `get_work_item_anchored_context` (`query`), `put_work_item_anchored_context` (`workItemQuery`, structured sections, `expectedVersion` — not `confirmed`) |
 | **Hours / pressure** | `get_consumed_hours` (`clientId`, `productIds`?, `startDate`, `endDate`, `overheadPercentual`? default `20`) → `consumed` in hours; `get_clients_pressure` (`period: "YYYY-MM"`, `totalCapacityHours`, `overheadPercentual`? default `20`, `holidays`? array of `"YYYY-MM-DD"`, `inputs: [{clientId, clientName?, productIds?, reservedHours}]`) → per-client `pressure = ((reserved * percentMonth - consumed) / reserved) * (reserved / totalCapacityHours)` as decimal ratio of team capacity. `percentMonth = elapsedBusinessDays / totalBusinessDays` (NETWORKDAYS) |
 
+## Anchoring research
+
+`focus.latestMeetings` and `focus.sourceContextId` pin documents into the evidence bundle regardless of what the semantic search surfaces, and pull **every** fact those documents produced.
+
+Use them whenever the question selects a document rather than a topic — "the last call", "that discovery session", "what changed since the kickoff". Recency is not expressible as a search query, so a plain `query` cannot answer it. `category` (e.g. `"Discovery Call"`) narrows the anchor and implies `latestMeetings: 1` on its own.
+
+Anchoring also survives a document that never reached the knowledge graph — its signals still load from the record.
+
 ## ID and query conventions
 
 - **`query` / `workItemQuery`**: the work item's `customId` (org-specific format, e.g. `PROJ-123`) or its internal `workItemId`; used by `get_work_item`, `get_work_item_anchored_context`, `put_work_item_anchored_context`, `transition_work_item`, `assign_work_item`, `unassign_work_item`.
@@ -26,6 +35,8 @@
 ## Supporting reads
 
 Before writes: `get_valid_transitions` (`workItemId`) before `transition_work_item`; `list_blocker_types` before `add_blocker`; `list_team_members` before assign/unassign. `list_work_items` defaults to `open`; pass `completionFilter: "all"` when you need done items.
+
+**Source contexts**: `list_source_contexts` shows what meetings exist (title, summary, category, `_creationTime`) — it is the only way to enumerate documents by date. `load_source_context` returns extracted **signals**: the compiled decisions, risks, open questions and work item candidates for a document. Signals are the default and usually enough. `includeRawText: true` returns the capped verbatim transcript for at most 2 documents — reserve it for exact wording, attribution of who said what, or a detail the signals demonstrably lack. Raw-text loads are recorded in the MCP audit log.
 
 **Release lists**: `list_releases` is the product's release catalog; `list_story_map_releases` is releases as positioned on the map (use before `reorder_story_map_release`).
 

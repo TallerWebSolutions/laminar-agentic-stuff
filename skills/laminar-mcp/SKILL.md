@@ -16,12 +16,30 @@ Lists need **client**; story map and releases need **product**. `clear_context` 
 
 → Full tool catalog: [references/tool-catalog.md](references/tool-catalog.md)
 
+## Research
+
+Pick the entry point by what the question **selects**:
+
+- **A topic** — "what have we decided about team formation?" → `research_product_context` with a `query`.
+- **A document** — "based on the last call", "that discovery session", "what changed since kickoff" → `research_product_context` with `focus.latestMeetings: 1` (or `focus.sourceContextId`, or `focus.category: "Discovery Call"`). Recency selects a document, not a topic, so a plain `query` cannot express it — anchoring is the only way to reach it reliably.
+
+Then work the loop, stopping as soon as you can answer:
+
+1. **Orient** — `research_product_context`. Read `contextBundle.discovery.sourceContexts` to see which documents actually backed the answer.
+2. **Ground** — `load_source_context` on those ids when the bundle's signal excerpt is too thin to answer confidently.
+3. **Trace** — call `research_product_context` again with `alreadyKnownContext` set to what you now know, to follow the chain of decisions backwards (what superseded what, what contradicted what).
+4. **Verbatim** — `includeRawText: true` only for exact wording, for who said what, or when signals demonstrably lack a detail. Max 2 ids per call.
+
+`list_source_contexts` is the only date-ordered view of what meetings exist — reach for it when the user refers to a meeting you cannot identify, then anchor on the id you find.
+
+**Signals vs raw text**: signals are the compiled decisions, risks, open questions and work item candidates for a document. They are the default and usually enough. The raw transcript is the only place unextracted detail survives — an offhand suggestion, an aside, the exact phrasing of an objection — so reach for it when a user insists something was said and the signals do not show it.
+
 ## Create demand
 
 Follow in order — do not skip.
 
 **1. Research gate** *(mandatory — no drafting until research is sufficient)*
-`research_product_context` (mode: `standard`) — then read the result:
+`research_product_context` (mode: `standard`) — add `focus.latestMeetings` when the demand comes out of a specific meeting. Then read the result:
 - If `shouldAskHuman: true`: immediately surface `contextBundle.contradictions` and `contextBundle.gaps` as explicit questions to the user — stop and wait for direction before anything else
 - If `sufficiency: "partial"` or `"insufficient"`: follow up to 2 of the returned `nextQueries`, passing the previous call's `answer` as `alreadyKnownContext` each time; stop as soon as `"enough"` is reached or both follow-ups are exhausted
 - Duplicate check: read `contextBundle.canonical.workItems` in the result — only call `list_work_items` if research returned zero work items and the query was broad enough that a duplicate might exist under a different framing
@@ -142,3 +160,7 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | Title missing Quem/Onde/Quando/O que slot | Refer to [references/demand-templates.md](references/demand-templates.md) — all slots except "Para que" are mandatory |
 | Gherkin keyword language mismatches demand body (e.g. pt-BR demand with `Given`/`When`/`Then`) | Match demand language — pt-BR demand uses `Funcionalidade`/`Contexto`/`Cenário`/`Dado`/`Quando`/`Então`/`E`/`Mas`; English demand keeps `Feature`/`Background`/`Scenario`/`Given`/`When`/`Then`/`And`/`But` |
 | Guessed which release the user means by "current" / "active" | Resolve to the first `list_story_map_releases` item with `isArchived !== true`; if none, tell the user there is no active release rather than picking an archived one |
+| Question was about a specific meeting but research used only a `query` | Anchor with `focus.latestMeetings` / `focus.sourceContextId` — recency and identity cannot be expressed as a search query |
+| Answered from `graph_fact` blocks when the document was right there | Read `contextBundle.discovery.sourceContexts`, then `load_source_context` for the full signals |
+| Reached for `includeRawText` by default | Signals first; raw text only for exact wording, attribution, or a detail signals lack — and max 2 ids |
+| Told the user something "was not discussed" based on signals alone | Signals are a lossy summary. Before denying, load the raw text of the anchored meeting |
