@@ -1,6 +1,6 @@
 ---
 name: laminar-mcp
-description: Guides Laminar MCP sessions for demand creation, story map operations, knowledge graph research, and handoff ADRs. Use when working on Laminar demands via the remote Laminar MCP and you see wrong or empty client/product scope, plans without prior research, missed contradictions or gaps, same-step or same-release story-map peers, anchored ADR conflicts, MCP transitions/assignments, broken or silent MCP, or mentions of Laminar MCP, demands, work item custom IDs, story map, anchored or source context, or Laminar handoff.
+description: Guides Laminar MCP sessions for demand creation, story map operations, knowledge graph research, and handoff ADRs. Use when working on Laminar demands via the remote Laminar MCP and you see wrong or empty client/product scope, plans without prior research, missed contradictions or gaps, same-step or same-release story-map peers, anchored ADR conflicts, MCP transitions/assignments, broken or silent MCP, or mentions of Laminar MCP, demands, work item custom IDs, kanban board, story map, anchored or source context, or Laminar handoff.
 ---
 
 # Laminar MCP
@@ -13,6 +13,7 @@ Server `tools/list` wins on names and args over this file. Assume **only** MCP a
 
 `get_current_context` → if needed `list_clients` / `list_products` → `set_context` (clientId, then productId).
 Lists need **client**; story map and releases need **product**. `clear_context` only to drop product on purpose.
+Boards need **neither**: `list_boards` → `list_board_work_items` (`boardId`) returns what the board screen shows, scoped by the board itself.
 
 → Full tool catalog: [references/tool-catalog.md](references/tool-catalog.md)
 
@@ -70,7 +71,7 @@ If not installed: question the minimal fix, explore broader alternatives, consid
 
 If you already have the ID: `get_work_item` → `get_work_item_anchored_context` → `research_product_context` (mode: `standard`, `focus: { workItemQuery: customId }`)
 
-If you don't have the ID: `list_work_items` first to find the `customId`, then follow the flow above. **Never pass free-text to `get_work_item`** — it only accepts a `customId` (e.g. `TAL-131`) or internal `workItemId`.
+If you don't have the ID: `list_work_items` first to find the `customId` (or `list_boards` → `list_board_work_items` when the user refers to a board), then follow the flow above. **Never pass free-text to `get_work_item`** — it only accepts a `customId` (e.g. `TAL-131`) or internal `workItemId`.
 
 Synthesize from: work item fields + anchored context decisions + research `answer` and `contextBundle`.
 
@@ -146,6 +147,7 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | Minimal fix without exploring scope | `/grill-me` or inline brainstorm before drafting |
 | Write executed without approval | `confirmed: false` → echo summary → `confirmed: true` only after user accepts |
 | Story map / releases errors | Set clientId + productId in context first |
+| Used `list_work_items` to answer "what is on board X" | `list_boards` → `list_board_work_items` — board scope and mounted columns decide visibility, not the session client |
 | `get_valid_transitions` with only a customId | Load `workItemId` via `get_work_item` first |
 | Batch previews assumed complete | ACL + row validation happen on `confirmed: true`; inspect `failures` after execute |
 | `pendingOperationId` reused across calls | It's informational — re-call the **same tool with same args** to execute, not the pending id |

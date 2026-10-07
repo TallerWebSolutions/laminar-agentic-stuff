@@ -11,6 +11,7 @@
 | **Session** | `get_current_context`, `set_context` (`clientId`?, `productId`?), `clear_context` |
 | **Portfolio / org lists** | `list_clients`, `list_products` (`clientId`? or session client), `list_statuses`, `list_team_members`, `list_blocker_types`, `list_releases` (session `productId` or `productId` arg) |
 | **Work items (read)** | `list_work_items` (`completionFilter`?: `open` default \| `all`), `get_work_item` (`query`, `descriptionFormat`?: `plain` to read \| `json`/`both` only if editing description), `get_valid_transitions` (`workItemId`) |
+| **Boards (read)** | `list_boards` — boards visible in PAT org, each with its own `filterClientIds` / `filterProductIds` scope (no client context needed); `list_board_work_items` (`boardId`) — items as the board screen shows them: statuses mounted on board columns ∩ board scope, ordered by column → status → `customId`, each with `columnName`, `statusName`, `statusType`; max **400** (`truncated`) |
 | **Story map (read)** | `get_story_map` (`productId`?), `list_story_map_activities` (`storyMapId`), `list_story_map_steps` (`storyMapId`), `list_story_map_releases` (`storyMapId`), `list_story_map_work_items` (`productId`?) |
 | **Work items (write)** | `create_work_item`, `transition_work_item`, `assign_work_item`, `unassign_work_item`, `update_work_item`, `add_blocker`, `remove_blocker` |
 | **Story map (write)** | `create_story_map_activity`, `update_story_map_activity`, `delete_story_map_activity`, `create_story_map_step`, `update_story_map_step`, `delete_story_map_step`, `move_step_to_activity`, `move_work_item_to_step`, `reorder_story_map_step`, `reorder_story_map_activity`, `reorder_story_map_release` |
@@ -34,7 +35,7 @@ Anchoring also survives a document that never reached the knowledge graph — it
 
 ## Supporting reads
 
-Before writes: `get_valid_transitions` (`workItemId`) before `transition_work_item`; `list_blocker_types` before `add_blocker`; `list_team_members` before assign/unassign. `list_work_items` defaults to `open`; pass `completionFilter: "all"` when you need done items.
+Before writes: `get_valid_transitions` (`workItemId`) before `transition_work_item`; `list_blocker_types` before `add_blocker`; `list_team_members` before assign/unassign. `list_work_items` defaults to `open`; pass `completionFilter: "all"` when you need done items. For "what is on board X" use `list_boards` → `list_board_work_items` instead — it needs no client context and mirrors the board screen (no completion filter: columns decide what is visible).
 
 **Source contexts**: `list_source_contexts` shows what meetings exist (title, summary, category, `_creationTime`) — it is the only way to enumerate documents by date. `load_source_context` returns extracted **signals**: the compiled decisions, risks, open questions and work item candidates for a document. Signals are the default and usually enough. `includeRawText: true` returns the capped verbatim transcript for at most 2 documents — reserve it for exact wording, attribution of who said what, or a detail the signals demonstrably lack. Raw-text loads are recorded in the MCP audit log.
 
