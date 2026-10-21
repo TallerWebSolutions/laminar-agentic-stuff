@@ -35,6 +35,21 @@ Then work the loop, stopping as soon as you can answer:
 
 **Signals vs raw text**: signals are the compiled decisions, risks, open questions and work item candidates for a document. They are the default and usually enough. The raw transcript is the only place unextracted detail survives — an offhand suggestion, an aside, the exact phrasing of an objection — so reach for it when a user insists something was said and the signals do not show it.
 
+## Add source context
+
+Use when the user wants a transcript, Slack conversation or document added to the product context. Needs write access to the client.
+
+1. **Open first** — `open_source_context_upload` (optional `title`) *before* asking the user to paste or attach the text. It fails at once when the user can't write to the client in context, so nobody pastes a transcript for nothing.
+2. **Flatten** — plain text only. Slack: one line per message, `[YYYY-MM-DD HH:MM] Name: message`, thread replies indented under their parent. Transcripts: `Name: …` turns.
+3. **Send the text**, one way:
+   - *With a shell* (Claude Code, Cursor): `curl --data-binary @file.txt "<uploadUrl>"`. Byte-exact, no output tokens. The URL works once.
+   - *Without a shell*: `append_source_context_chunk` with consecutive pieces of at most `maxChunkChars` (20 000), `index` 0, 1, 2… Compare each reply's `chars`, `head` and `tail` with what you meant to send; resend that index if they differ (re-sending replaces it).
+4. **Commit** — `commit_source_context_upload` (`totalChars` = length of the whole text when sent as chunks). A mismatch is refused: find the chunk whose echo differs and resend it.
+5. **Wait for the analysis** — poll `get_source_context_upload` every `retryAfterMs` until `analysisStage` is `ready`. Long transcripts take longer, since they are analyzed in windows.
+6. **Preview, then publish** — `publish_source_context` with `confirmed: false`. Show the user the title, summary, category and signals, and say so if `duplicates` is not empty. Apply their edits as overrides (`title`, `summary`, `categoryId` from `categories`, `signals`). Only after they approve: `confirmed: true`.
+
+An interrupted upload can be resumed for 24 hours from any session: `get_source_context_upload` shows which indexes arrived. An unpublished draft also shows up in the app's draft list, where anyone with write access can finish it.
+
 ## Create demand
 
 Follow in order — do not skip.
@@ -165,4 +180,7 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | Question was about a specific meeting but research used only a `query` | Anchor with `focus.latestMeetings` / `focus.sourceContextId` — recency and identity cannot be expressed as a search query |
 | Answered from `graph_fact` blocks when the document was right there | Read `contextBundle.discovery.sourceContexts`, then `load_source_context` for the full signals |
 | Reached for `includeRawText` by default | Signals first; raw text only for exact wording, attribution, or a detail signals lack — and max 2 ids |
+| Asked the user to paste a transcript before opening the upload | `open_source_context_upload` first — it is the permission check |
+| Sent a whole transcript in one chunk, or paraphrased it while copying | Chunks of at most 20 000 characters, copied verbatim; check each echo's `head`/`tail`; with a shell, POST the file to `uploadUrl` instead |
+| Published a source context without showing the preview | `publish_source_context` with `confirmed: false` first; show it, mention `duplicates`, then `confirmed: true` |
 | Told the user something "was not discussed" based on signals alone | Signals are a lossy summary. Before denying, load the raw text of the anchored meeting |
