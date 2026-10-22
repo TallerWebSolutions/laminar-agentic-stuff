@@ -39,7 +39,7 @@ Then work the loop, stopping as soon as you can answer:
 
 Use when the user wants a transcript, Slack conversation or document added to the product context. Needs write access to the client.
 
-1. **Open first** — `open_source_context_upload` (optional `title`) *before* asking the user to paste or attach the text. It fails at once when the user can't write to the client in context, so nobody pastes a transcript for nothing.
+1. **Open first** — `open_source_context_upload` (optional `title`) *before* asking the user to paste or attach the text. It fails at once when the user can't write to the client, so nobody pastes a transcript for nothing. Pass `clientId` (from `list_clients`) and `productId` (from `list_products`) explicitly when your MCP client may open a new session between calls — durable or serverless agents do; otherwise it uses the client and product from `set_context`. Every later step is keyed by `uploadId`, so a lost session doesn't matter after this.
 2. **Flatten** — plain text only. Slack: one line per message, `[YYYY-MM-DD HH:MM] Name: message`, thread replies indented under their parent. Transcripts: `Name: …` turns.
 3. **Send the text**, one way:
    - *With a shell* (Claude Code, Cursor): `curl --data-binary @file.txt "<uploadUrl>"`. Byte-exact, no output tokens. The URL works once.
@@ -180,6 +180,7 @@ pressure = ((reserved * percentMonthElapsed - consumed) / reserved) * (reserved 
 | Question was about a specific meeting but research used only a `query` | Anchor with `focus.latestMeetings` / `focus.sourceContextId` — recency and identity cannot be expressed as a search query |
 | Answered from `graph_fact` blocks when the document was right there | Read `contextBundle.discovery.sourceContexts`, then `load_source_context` for the full signals |
 | Reached for `includeRawText` by default | Signals first; raw text only for exact wording, attribution, or a detail signals lack — and max 2 ids |
+| `open_source_context_upload` says no client is selected right after `set_context` | Your MCP client lost its session between calls; pass `clientId` and `productId` to `open_source_context_upload` instead |
 | Asked the user to paste a transcript before opening the upload | `open_source_context_upload` first — it is the permission check |
 | Sent a whole transcript in one chunk, or paraphrased it while copying | Chunks of at most 20 000 characters, copied verbatim; check each echo's `head`/`tail`; with a shell, POST the file to `uploadUrl` instead |
 | Published a source context without showing the preview | `publish_source_context` with `confirmed: false` first; show it, mention `duplicates`, then `confirmed: true` |
