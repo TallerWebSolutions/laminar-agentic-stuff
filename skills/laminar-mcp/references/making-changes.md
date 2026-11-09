@@ -13,7 +13,9 @@ Never collapse steps. When planning a sequence, run the full preview chain first
 
 ## Handoff (anchored ADR)
 
-`get_work_item_anchored_context` → merge sections (`decisions`, `constraints`, `openQuestions`, `stateItems`, `outOfScope`, `scenarios` + coverage enum, optional `documentTitle`) → `put_work_item_anchored_context` with `expectedVersion` (`0` if new) → on conflict, refetch and retry.
+`get_work_item_anchored_context` → merge sections (`decisions`, `constraints`, `openQuestions`, `stateItems`, `scope`, `outOfScope`, `scenarios` + coverage enum, optional `documentTitle`) → `put_work_item_anchored_context` with `expectedVersion` (`0` if new) → on conflict, refetch and retry.
+
+`scope` lists what the demand includes. It needs at least one item when `expectedVersion` is `0`, otherwise the put fails. On existing documents it is optional, but `put` replaces the whole document: resend the items from the `## Scope` section or they are lost. Add `scope` to older documents when you can infer it.
 
 Optional: `update_work_item` via TipTap JSON from `get_work_item` (`descriptionFormat: "json"`).
 

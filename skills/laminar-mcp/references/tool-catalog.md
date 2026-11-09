@@ -17,7 +17,7 @@
 | **Work items (write)** | `create_work_item`, `transition_work_item`, `assign_work_item`, `unassign_work_item`, `update_work_item`, `add_blocker`, `remove_blocker` |
 | **Story map (write)** | `create_story_map_activity`, `update_story_map_activity`, `delete_story_map_activity`, `create_story_map_step`, `update_story_map_step`, `delete_story_map_step`, `move_step_to_activity`, `move_work_item_to_step`, `reorder_story_map_step`, `reorder_story_map_activity`, `reorder_story_map_release` |
 | **Batch writes** | `create_story_map_activities_batch`, `create_story_map_steps_batch`, `create_work_items_batch`, `assign_work_items_to_release_batch`, `update_work_items_batch` — max **200** rows |
-| **Anchored ADR** | `get_work_item_anchored_context` (`query`), `put_work_item_anchored_context` (`workItemQuery`, structured sections, `expectedVersion` — not `confirmed`) |
+| **Anchored ADR** | `get_work_item_anchored_context` (`query`), `put_work_item_anchored_context` (`workItemQuery`, structured sections, `expectedVersion` — not `confirmed`; `scope` required when `expectedVersion` is `0`) |
 | **Hours / pressure** | `get_consumed_hours` (`clientId`, `productIds`?, `startDate`, `endDate`, `overheadPercentual`? default `20`) → `consumed` in hours; `get_clients_pressure` (`period: "YYYY-MM"`, `totalCapacityHours`, `overheadPercentual`? default `20`, `holidays`? array of `"YYYY-MM-DD"`, `inputs: [{clientId, clientName?, productIds?, reservedHours}]`) → per-client `pressure = ((reserved * percentMonth - consumed) / reserved) * (reserved / totalCapacityHours)` as decimal ratio of team capacity. `percentMonth = elapsedBusinessDays / totalBusinessDays` (NETWORKDAYS) |
 
 ## Anchoring research

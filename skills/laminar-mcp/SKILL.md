@@ -99,7 +99,7 @@ Synthesize from: work item fields + anchored context decisions + research `answe
 Follow in order.
 
 **1. Sync anchored context**
-`get_work_item_anchored_context` → if everything was actually done, mark every `stateItem` done, every scenario `covered`, clear `openQuestions` → `put_work_item_anchored_context` with `expectedVersion`.
+`get_work_item_anchored_context` → if everything was actually done, mark every `stateItem` done, every scenario `covered`, clear `openQuestions`, keep `scope` → `put_work_item_anchored_context` with `expectedVersion`.
 On `ANCHORED_CONTEXT_VERSION_CONFLICT`: refetch and retry with the new version.
 
 **2. Sync demand description** *(if AC changed during implementation)*
